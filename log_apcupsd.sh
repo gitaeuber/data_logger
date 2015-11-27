@@ -11,20 +11,19 @@
 
 LOG_FILE="/srv/apcupsd/$(date "+%Y-%m").log"
 APCACCESS=/sbin/apcaccess
-SED_IGNORE=( "XONBATT" "LASTSTEST" )
+APC_IGNORE=( "XONBATT" "LASTSTEST" )
 
 
 
-SED_IGNORE=("${SED_IGNORE[@]/%/\/d\'}")
-SED_IGNORE=("${SED_IGNORE[@]/#/-e\'\/}")
+APC_IGNORE=("${APC_IGNORE[@]/%/\/d\'}")
+APC_IGNORE=("${APC_IGNORE[@]/#/-e\'\/}")
 
 if [ ! -e "$LOG_FILE" ] # first log - write logfile index
 then
-echo    LINE=$($APCACCESS | sed "${IGNORE[@]}" -e 's/ *: .*//' | tr '\n' \;)
+    LINE=$($APCACCESS | sed "${APC_IGNORE[@]}" -e 's/ *: .*//' | tr '\n' \;)
     echo "${LINE%;}" >> "$LOG_FILE"
 fi
 
-exit
 # XONBATT only appears when power was lost. it disturbs the log file format!
-LINE=$($APCACCESS | sed -e '/XONBATT/d' -e 's/[^:]*: *//' -e 's/ *$//' | tr '\n' \; )
+LINE=$($APCACCESS | sed "${APC_IGNORE[@]}" -e 's/[^:]*: *//' -e 's/ *$//' | tr '\n' \; )
 echo "${LINE%;}" >> "$LOG_FILE"
