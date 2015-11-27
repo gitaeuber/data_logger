@@ -11,12 +11,16 @@
 
 LOG_FILE="/srv/apcupsd/$(date "+%Y-%m").log"
 APCACCESS=/sbin/apcaccess
+
+# the changing number of values disturb the log file format!
+# XONBATT only appears when power was lost
+# LASTSTEST only appears when selftest was run
 APC_IGNORE=( "XONBATT" "LASTSTEST" )
 
 
 
-APC_IGNORE=("${APC_IGNORE[@]/%/\/d\'}")
-APC_IGNORE=("${APC_IGNORE[@]/#/-e\'\/}")
+APC_IGNORE=("${APC_IGNORE[@]/%/\/d}")
+APC_IGNORE=("${APC_IGNORE[@]/#/-e\/}")
 
 if [ ! -e "$LOG_FILE" ] # first log - write logfile index
 then
@@ -24,6 +28,5 @@ then
     echo "${LINE%;}" >> "$LOG_FILE"
 fi
 
-# XONBATT only appears when power was lost. it disturbs the log file format!
 LINE=$($APCACCESS | sed "${APC_IGNORE[@]}" -e 's/[^:]*: *//' -e 's/ *$//' | tr '\n' \; )
 echo "${LINE%;}" >> "$LOG_FILE"
