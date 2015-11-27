@@ -3,7 +3,7 @@
 #
 # log most output of the UPS to a log file
 #
-# example conjob:
+# example conjob /etc/crond./log_apcupsd:
 #
 # * * * * *	root	/usr/local/bin/log_apcupsd.sh
 #
