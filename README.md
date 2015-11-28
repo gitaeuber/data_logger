@@ -1,7 +1,9 @@
 # data_logger
 scripts to log data from individual sources to logfile
 
-and script to import this log file data into volkszähler
+and scripts to import this log file data into volkszähler
+
+and scripts that might be useful when using volkszaehler
 
 
 
