@@ -49,6 +49,12 @@
 # http://bg-etech.de/download/manual/SDM630Register.pdf
 #
 
+##
+#  cronjob example
+#
+#  15 1 * * *	root	/bin/fgrep "$(date +\%F -d yesterday) " /path/to/power/$(date +\%Y-\%m -d yesterday).log | /usr/local/bin/vz-import_sdm630.sh 2>/dev/null
+#
+##
 
 
 ## configuration

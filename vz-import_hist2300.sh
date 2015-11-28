@@ -34,6 +34,13 @@
 ##
 
 
+##
+#  cronjob example
+#
+#  10 1 * * *	root	/usr/local/bin/vz-import_hist2300.sh /path/to/open2300/$(date +\%Y\%m\%d -d yesterday)-open2300.log 2>/dev/null && gzip -9 /path/to/open2300/$(date +\%Y\%m\%d -d yesterday)-open2300.log
+#
+##
+
 
 ## configuration
 #

@@ -33,6 +33,14 @@
 ##
 
 
+##
+#  cronjob example:
+#
+#  5 1 * * *	root	/bin/egrep -e "^APC" -e "$(date +\%F -d yesterday) " /path/to/apcupsd/log/$(date +\%Y-\%m -d yesterday).log | /usr/local/bin/vz-import_apcupsd.sh 2>/dev/null
+#
+##
+
+
 ## configuration
 #
 # middleware url

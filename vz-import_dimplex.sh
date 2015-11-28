@@ -33,6 +33,13 @@
 ##
 
 
+##
+#  cronjob example:
+#
+# 1 1 * * *	root	/bin/zcat /path/to/dimplex/log/$(date +\%Y_\%m/\%d.csv.gz -d yesterday) | /usr/local/bin/vz-import_dimplex.sh 2>/dev/null
+#
+##
+
 ## configuration
 #
 # middleware url
@@ -93,93 +100,93 @@ do
 
     if [ "$1" = "${1#-}" ]
     then
-    if [ -r "$1" ]
-    then
-        exec 3< "$1"
-        echo -e "\nworking on $1"
+	if [ -r "$1" ]
+	then
+	    exec 3< "$1"
+	    echo -e "\nworking on $1"
+	else
+	    echo "$1 not readable"
+	    shift
+	    continue
+	fi
     else
-        echo "$1 not readable"
-        shift
-        continue
-    fi
-    else
-    exec 3<&1
-    echo "working on stdin"
+	exec 3<&1
+	echo "working on stdin"
     fi
 
     read -a LINE -u 3
 
     if [ "${LINE[0]}" != "Type" ]
     then
-    echo "${1/#-*//dev/stdin} is not in dimplex log format. Skipping!"
-    else
-
-    read -a LINE -u 3
-    if [ "${LINE[0]}" != "Index" ]
-    then
-        echo "${1/#-*//dev/stdin} is not in dimplex log format. Skipping!"
-    else
-
-        for I in "${!INDEX[@]}"
-        do
-	for J in "${!LINE[@]}"
-	do
-	    if [ "${INDEX[$I]}" = "${LINE[$J]}" ]
-	    then
-	    COLUMN[$I]="$J"
-	    fi
-	done
-        done
-
-        read -a LINE -u 3
-        if [ "${LINE[0]}" != "Name" ]
-        then
 	echo "${1/#-*//dev/stdin} is not in dimplex log format. Skipping!"
-        else
+    else
 
 	read -a LINE -u 3
-	if [ "${LINE[0]}" != "Description" ]
+	if [ "${LINE[0]}" != "Index" ]
 	then
 	    echo "${1/#-*//dev/stdin} is not in dimplex log format. Skipping!"
 	else
-	    while read -a LINE -u 3
+
+	    for I in "${!INDEX[@]}"
 	    do
-
-	    TS=`$DATE +%s000 -d "${LINE[0]//\//-}"`
-
-	    for I in "${!COLUMN[@]}"
-	    do
-	        if [ -z "${UUID[$I]}" ]
-	        then
-		[ -n "$DEBUG_ONCE" ] && \
-		echo "value $I is not mapped to an uuid! Add the mapping to the array." >&2
-		continue
-	        fi
-
-	        if [ -n "${DEPEND[$I]}" ]
-	        then
-		[ "${LINE[${COLUMN[${DEPEND[$I]}]}]}" = "0" ] && continue
-	        fi
-
-	        REQUEST_URL="${URL}/data/${UUID[$I]}.json?value=${LINE[${COLUMN[$I]}]}&ts=${TS}${URL_PARAMS}${DEBUG:+&debug=1}"
-	        if [ -n "$DEBUG" ]
-	        then
-		echo -e "logging sensor:\t\t$I}"
-		echo -e "with value:\t\t${LINE[${COLUMN[$I]}]}"
-		echo -e "at:\t\t\t${LINE[0]}"
-		echo -e "with request:\t\t${REQUEST_URL}"
-	        fi
-
-	        $CURL ${CURL_OPTS} --data "" "${REQUEST_URL}" >&2
+		for J in "${!LINE[@]}"
+		do
+		    if [ "${INDEX[$I]}" = "${LINE[$J]}" ]
+		    then
+			COLUMN[$I]="$J"
+		    fi
+		done
 	    done
 
-	    echo -en "\r${LINE[0]}"
-	    DEBUG_ONCE=""
+	    read -a LINE -u 3
+	    if [ "${LINE[0]}" != "Name" ]
+	    then
+		echo "${1/#-*//dev/stdin} is not in dimplex log format. Skipping!"
+	    else
 
-	    done
+		read -a LINE -u 3
+		if [ "${LINE[0]}" != "Description" ]
+		then
+		    echo "${1/#-*//dev/stdin} is not in dimplex log format. Skipping!"
+		else
+		    while read -a LINE -u 3
+		    do
+
+			TS=`$DATE +%s000 -d "${LINE[0]//\//-}"`
+
+			for I in "${!COLUMN[@]}"
+			do
+			    if [ -z "${UUID[$I]}" ]
+			    then
+				[ -n "$DEBUG_ONCE" ] && \
+				echo "value $I is not mapped to an uuid! Add the mapping to the array." >&2
+				continue
+			    fi
+
+			    if [ -n "${DEPEND[$I]}" ]
+			    then
+				[ "${LINE[${COLUMN[${DEPEND[$I]}]}]}" = "0" ] && continue
+			    fi
+
+			    REQUEST_URL="${URL}/data/${UUID[$I]}.json?value=${LINE[${COLUMN[$I]}]}&ts=${TS}${URL_PARAMS}${DEBUG:+&debug=1}"
+			    if [ -n "$DEBUG" ]
+			    then
+				echo -e "logging sensor:\t\t$I}"
+				echo -e "with value:\t\t${LINE[${COLUMN[$I]}]}"
+				echo -e "at:\t\t\t${LINE[0]}"
+				echo -e "with request:\t\t${REQUEST_URL}"
+			    fi
+
+			    $CURL ${CURL_OPTS} --data "" "${REQUEST_URL}" >&2
+			done
+
+			echo -en "\r${LINE[0]}"
+			DEBUG_ONCE=""
+
+		    done
+		fi
+	    fi
 	fi
-        fi
-    fi
     fi
 
     exec 3<&-
